@@ -30,7 +30,8 @@ class RDF_GeoJSON_editor {
           this.rdf_geojson.update(e.sourceTarget.toGeoJSON());
         });
         this.layer.addTo(this.map);
-        this.map.fitBounds(this.layer.getBounds());
+        let bounds = this.layer.getBounds();
+        if (Object.keys(bounds).length) this.map.fitBounds(bounds);
       });
 
     this.map.on("pm:create", e => {
