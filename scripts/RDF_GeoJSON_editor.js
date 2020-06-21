@@ -27,6 +27,7 @@ class RDF_GeoJSON_editor {
       .then(layer => {
         this.layer = layer;
         this.layer.on("pm:update", async function (e) {
+          e.sourceTarget.setStyle({ color: "red" });
           let new_feature = await thisEditor.rdf_geojson.update(
             e.sourceTarget.toGeoJSON()
           );
@@ -39,6 +40,7 @@ class RDF_GeoJSON_editor {
       });
 
     this.map.on("pm:create", e => {
+      e.layer.setStyle({ color: "red" });
       this.rdf_geojson.create(e.layer.toGeoJSON()).then(newFeature => {
         e.layer.remove();
         this.layer.addData(newFeature);
@@ -46,12 +48,14 @@ class RDF_GeoJSON_editor {
     });
 
     this.map.on("pm:remove", e => {
+      // workaround because pm:remove is only fired after layer is already removed
+      // https://github.com/geoman-io/leaflet-geoman/blob/master/src/js/Mixins/Modes/Mode.Removal.js#L69
+      e.layer.addTo(this.map);
       if (confirm("Delete feature?")) {
-        this.rdf_geojson.delete(e.layer.toGeoJSON());
-      } else {
-        // workaround because pm:remove is only fired after layer is already removed
-        // https://github.com/geoman-io/leaflet-geoman/blob/master/src/js/Mixins/Modes/Mode.Removal.js#L69
-        e.layer.addTo(this.map);
+        e.layer.setStyle({ color: "red" });
+        this.rdf_geojson
+          .delete(e.layer.toGeoJSON())
+          .then(() => e.layer.remove());
       }
     });
   }

@@ -68,7 +68,7 @@ class RDFlib_GeoJSON {
     return feature.properties;
   }
 
-  delete(feature) {
+  async delete(feature) {
     if (typeof feature.properties._item === "undefined")
       throw new Error(
         "feature did not come from rdf store (properties._item missing)"
@@ -82,10 +82,10 @@ class RDFlib_GeoJSON {
       this.store.match(rdf_feature),
       this.store.match(geom)
     );
-    this.updater.update(del, [], (uri, ok, message) => {
-      if (ok) {
-        console.log("deleted");
-      } else throw new Error(message);
-    });
+    try {
+      await this.updater.update(del, []);
+    } catch (err) {
+      alert(err);
+    }
   }
 }
