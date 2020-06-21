@@ -26,8 +26,12 @@ class RDF_GeoJSON_editor {
       )
       .then(layer => {
         this.layer = layer;
-        this.layer.on("pm:update", e => {
-          this.rdf_geojson.update(e.sourceTarget.toGeoJSON());
+        this.layer.on("pm:update", async function (e) {
+          let new_feature = await thisEditor.rdf_geojson.update(
+            e.sourceTarget.toGeoJSON()
+          );
+          e.sourceTarget.remove();
+          thisEditor.layer.addData(new_feature);
         });
         this.layer.addTo(this.map);
         let bounds = this.layer.getBounds();

@@ -38,10 +38,15 @@ class RDFlib_GeoJSON {
       this.store.match(rdf_feature),
       this.store.match(geom)
     );
-    await this.updater.update(del, ins, (uri, ok, message) => {
-      if (ok) {
-        console.log("updated");
-      } else throw new Error(message);
+    try {
+      await this.updater.update(del, ins);
+    } catch (err) {
+      alert(err);
+    }
+    return rdfToGeoJSON(this.store, this.doc, true, true, {
+      // TODO: avoid relying on order?
+      feature: ins[1].subject,
+      geom: ins[0].subject
     });
   }
 
