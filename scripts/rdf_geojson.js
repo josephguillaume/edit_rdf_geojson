@@ -3,7 +3,8 @@ function rdfToGeoJSON(
   store,
   source = null,
   getProps = true,
-  getRDFItems = false
+  getRDFItems = false,
+  match = {}
 ) {
   if (Array.isArray(store)) {
     ins = store;
@@ -13,7 +14,7 @@ function rdfToGeoJSON(
   if (typeof source === "string") {
     source = $rdf.sym(source);
   }
-  geoms = store.match(null, OGC("asWKT"), null, source);
+  geoms = store.match(match.geom, OGC("asWKT"), null, source);
   geojson = {
     type: "FeatureCollection",
     features: geoms.map(st => {
@@ -21,7 +22,9 @@ function rdfToGeoJSON(
       wkt.read(st.object.value);
       geom = wkt.toJson();
       // Assumes there is only a single feature with given geometry and wkt
-      item = store.any(null, OGC("hasGeometry"), st.subject);
+      item = match.feature
+        ? match.feature
+        : store.any(null, OGC("hasGeometry"), st.subject);
       var props = {};
       if (getProps) {
         props_st = store.match(item, null, null);
