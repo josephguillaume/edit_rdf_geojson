@@ -40,16 +40,8 @@ class RDF_GeoJSON_editor {
 
     this.map.on("pm:create", e => {
       this.rdf_geojson.create(e.layer.toGeoJSON()).then(newFeature => {
-        e.layer.removeFrom(this.map);
-        this.map.addLayer(
-          L.geoJSON(newFeature, {
-            onEachFeature: function (feature, layer) {
-              layer.on("click", e =>
-                thisEditor.show_property_editor(e.target.feature)
-              );
-            }
-          })
-        );
+        e.layer.remove();
+        this.layer.addData(newFeature);
       });
     });
 
