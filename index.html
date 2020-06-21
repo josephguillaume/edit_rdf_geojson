@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Edit RDF GeoJSON</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.5.1/dist/leaflet.css"
+      integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.5.1/dist/leaflet.js"
+      integrity="sha512-GffPMF3RvMeYyc1LWMHtK8EbPv0iNZ8/oTtHPx9/cc2ILxQ+u905qIwdpULaqDkyBKgOaB57QTMg7ztg8Jm2Og=="
+      crossorigin=""
+    ></script>
+    <!-- https://github.com/perliedman/leaflet-control-geocoder/blob/master/README.md -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css"
+    />
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.css"
+    />
+    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.min.js"></script>
+
+    <script src="scripts/solid-auth-client.bundle.js"></script>
+    <script src="scripts/rdflib.min.js"></script>
+    <script src="scripts/wicket.js"></script>
+    <script src="scripts/rdf_geojson.js"></script>
+    <script src="scripts/RDFlib_GeoJSON.js"></script>
+    <script src="scripts/RDF_GeoJSON_editor.js"></script>
+    <script src="scripts/solid_browser.js"></script>
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      html,
+      body {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+      }
+      #map {
+        flex-shrink: 100;
+        height: 500px;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+  </body>
+  <div id="profile">
+    <p id="login">
+      You are not logged in.
+      <button>Log in</button>
+    </p>
+    <p id="logout" class="hidden">
+      You are logged in as <span id="user"></span>.
+      <button>Log out</button>
+    </p>
+  </div>
+  <script>
+    loc_default = [-35.2851, 149.1305];
+    var map = L.map("map", {
+      center: loc_default,
+      zoom: 11
+    });
+
+    // create the tile layer with correct attribution
+    var osmUrl = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+    var osmAttrib =
+      'Map data © <a href="https://openstreetmap.org">OpenStreetMap</a> contributors';
+    // TODO: add link to these coordinates on osm to edit
+    var osm = new L.TileLayer(osmUrl, {
+      minZoom: 3,
+      maxNativeZoom: 19,
+      maxZoom: 20,
+      attribution: osmAttrib
+    });
+    map.addLayer(osm);
+    L.Control.geocoder().addTo(map);
+
+    map.pm.addControls({
+      position: "topleft",
+      drawMarker: false,
+      drawCircle: false,
+      drawCircleMarker: false,
+      drawRectangle: false,
+      drawPolyline: false,
+      dragMode: false
+    });
+
+    const popupUri = "popup.html";
+    document
+      .querySelector("#login button")
+      .addEventListener("click", () => solid.auth.popupLogin({ popupUri }));
+    document
+      .querySelector("#logout button")
+      .addEventListener("click", () => solid.auth.logout());
+
+    // https://stackoverflow.com/questions/979975/how-to-get-the-value-from-the-get-parameters
+    function getQueryParams(qs) {
+      qs = qs.split("+").join(" ");
+
+      var params = {},
+        tokens,
+        re = /[?&]?([^=]+)=([^&]*)/g;
+
+      while ((tokens = re.exec(qs))) {
+        params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+      }
+
+      return params;
+    }
+
+    var solid_browser, editor;
+    solid.auth.trackSession(session => {
+      const loggedIn = !!session;
+      document.querySelector("#login").classList.add("hidden");
+      document.querySelector("#logout").classList.add("hidden");
+      if (!loggedIn) {
+        document.querySelector("#login").classList.remove("hidden");
+      }
+      if (loggedIn) {
+        document.querySelector("#logout").classList.remove("hidden");
+        var params = getQueryParams(window.location.search);
+        if (params.zonedoc) {
+          zonedoc = decodeURIComponent(params.zonedoc);
+          editor = new RDF_GeoJSON_editor(map, zonedoc);
+        } else {
+          solid_browser = new SolidBrowser(
+            session,
+            function (zonedoc) {
+              this.save_cookie_default(zonedoc);
+              editor = new RDF_GeoJSON_editor(map, zonedoc);
+            },
+            "browse_cookie_default",
+            { cookie_name: "zonedoc_default" }
+          );
+        }
+      }
+      document.querySelector("#user").textContent = session && session.webId;
+    });
+  </script>
+</html>
