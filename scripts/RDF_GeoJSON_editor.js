@@ -12,9 +12,15 @@ class RDF_GeoJSON_editor {
       .then(geojson =>
         L.geoJSON(geojson, {
           onEachFeature: function (feature, layer) {
-            layer.on("click", e =>
-              thisEditor.show_property_editor(e.target.feature)
-            );
+            layer.on("click", e => {
+              // TODO: seems like there should be a better way of dealing with this
+              if (
+                thisEditor.map.pm.globalEditEnabled() ||
+                thisEditor.map.pm.globalRemovalEnabled()
+              )
+                return false;
+              thisEditor.show_property_editor(e.target.feature);
+            });
           }
         })
       )
@@ -42,7 +48,15 @@ class RDF_GeoJSON_editor {
       });
     });
 
-    this.map.on("pm:remove", e => this.rdf_geojson.delete(e.layer.toGeoJSON()));
+    this.map.on("pm:remove", e => {
+      if (confirm("Delete feature?")) {
+        this.rdf_geojson.delete(e.layer.toGeoJSON());
+      } else {
+        // workaround because pm:remove is only fired after layer is already removed
+        // https://github.com/geoman-io/leaflet-geoman/blob/master/src/js/Mixins/Modes/Mode.Removal.js#L69
+        e.layer.addTo(this.map);
+      }
+    });
   }
 
   show_property_editor(feature) {
