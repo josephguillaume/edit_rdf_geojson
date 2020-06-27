@@ -141,4 +141,15 @@ class RDF_GeoJSON_editor {
     feature.properties[key] = value;
     this.show_property_editor(feature);
   }
+
+  toGeoJSON(clean = true) {
+    let geojson = this.layer.toGeoJSON();
+    geojson = JSON.parse(JSON.stringify(geojson));
+    if (clean)
+      geojson.features.forEach(x => {
+        delete x.properties._geom;
+        delete x.properties._item;
+      });
+    return geojson;
+  }
 }

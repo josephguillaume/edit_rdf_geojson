@@ -71,9 +71,28 @@
     <p id="logout" class="hidden">
       You are logged in as <span id="user"></span>.
       <button>Log out</button>
+      <a id="download_link" class="hidden" href="#" onClick="download_geojson()"
+        >Download GeoJSON</a
+      >
     </p>
   </div>
   <script>
+    // https://stackoverflow.com/questions/3916191/download-data-url-file
+    function download_geojson() {
+      datauri =
+        "data:application/geo+json," + JSON.stringify(editor.toGeoJSON());
+      filename =
+        editor.doc.replace(/.*\//, "").replace(/\..*/, "") + ".geojson";
+      fetch(datauri).then(function (t) {
+        return t.blob().then(b => {
+          var a = document.createElement("a");
+          a.href = URL.createObjectURL(b);
+          a.setAttribute("download", filename);
+          a.click();
+        });
+      });
+    }
+
     loc_default = [-35.2851, 149.1305];
     var map = L.map("map", {
       center: loc_default,
@@ -141,12 +160,16 @@
         if (params.zonedoc) {
           zonedoc = decodeURIComponent(params.zonedoc);
           editor = new RDF_GeoJSON_editor(map, zonedoc);
+          document.getElementById("download_link").classList.remove("hidden");
         } else {
           solid_browser = new SolidBrowser(
             session,
             function (zonedoc) {
               this.save_cookie_default(zonedoc);
               editor = new RDF_GeoJSON_editor(map, zonedoc);
+              document
+                .getElementById("download_link")
+                .classList.remove("hidden");
             },
             "browse_cookie_default",
             { cookie_name: "zonedoc_default" }
