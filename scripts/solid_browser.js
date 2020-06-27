@@ -37,7 +37,10 @@ class SolidBrowser {
     this.folder_history.push(this.storage.value);
   }
   async browse(folder) {
-    await this.fetcher.load(folder);
+    await this.fetcher.load(folder, {
+      // TODO: workaround for https://github.com/linkeddata/rdflib.js/issues/426
+      headers: { accept: "text/turtle" }
+    });
     var files = this.store
       .match($rdf.namedNode(folder), LDP("contains"), null)
       .map(x => x.object.value);
