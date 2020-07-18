@@ -141,7 +141,7 @@ class RDF_GeoJSON_editor {
 
     e.target.closest("tr").querySelector(".value").innerHTML +=
       "<span style='color:red'>&nbsp;saving</span>";
-    await this.rdf_geojson.update({
+    let updated = await this.rdf_geojson.update({
       type: "PropertyUpdate",
       _item: feature_ref,
       properties: {
@@ -149,7 +149,10 @@ class RDF_GeoJSON_editor {
       }
     });
 
-    feature.properties[key] = value;
+    //TODO: more robust handling?
+    key == "[URI]"
+      ? (feature.properties._item = updated._item)
+      : (feature.properties[key] = updated[key]);
     this.show_property_editor(feature);
   }
 

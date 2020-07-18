@@ -86,17 +86,18 @@ class RDFlib_GeoJSON {
         : new_uri.startsWith("#")
         ? DOC(new_uri.replace("#", ""))
         : DOC(new_uri);
-      rdf_feature = this.rename_feature(rdf_feature, new_uri);
+      rdf_feature = await this.rename_feature(rdf_feature, new_uri);
+      feature.properties._item = rdf_feature;
     }
 
     var ins = Object.keys(feature.properties).map(key => {
-      if (key == "[URI]") return undefined;
+      if (key == "[URI]" || key == "_item") return undefined;
       let value = feature.properties[key];
       if (value == "") return undefined;
       return $rdf.st(rdf_feature, DOC(key), value, $rdf.sym(this.doc));
     });
     var del = Object.keys(feature.properties).flatMap(key => {
-      if (key == "[URI]") return undefined;
+      if (key == "[URI]" || key == "_item") return undefined;
       return this.store.match(rdf_feature, DOC(key), null);
     });
     ins = ins.filter(x => typeof x !== "undefined");
