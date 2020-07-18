@@ -99,6 +99,8 @@ class RDFlib_GeoJSON {
       if (key == "[URI]") return undefined;
       return this.store.match(rdf_feature, DOC(key), null);
     });
+    ins = ins.filter(x => typeof x !== "undefined");
+    del = del.filter(x => typeof x !== "undefined");
     await this.updater.update(del, ins);
     return feature.properties;
   }
