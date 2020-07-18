@@ -87,6 +87,17 @@ class RDF_GeoJSON_editor {
     }
     property_editor.classList.remove("hidden");
     document.querySelector("#property_editor tbody").textContent = "";
+
+    let row = document.createElement("tr");
+    let feature_uri =
+      feature.properties._item.termType == "BlankNode"
+        ? ""
+        : feature.properties._item.value.replace(this.doc, "");
+    row.innerHTML = `
+    <td class=key><i>[URI]</i></td>
+    <td class=value contenteditable>${feature_uri}</td>`;
+    property_editor.querySelector("tbody").appendChild(row);
+
     document
       .querySelector("#property_editor tbody")
       .setAttribute("data-rdfref", feature.properties._item.value);
@@ -101,7 +112,7 @@ class RDF_GeoJSON_editor {
       property_editor.querySelector("tbody").appendChild(row);
     });
 
-    let row = document.createElement("tr");
+    row = document.createElement("tr");
     row.innerHTML = `
     <td class=key contenteditable></td>
     <td class=value contenteditable></td>`;
