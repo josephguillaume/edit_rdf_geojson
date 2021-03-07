@@ -60,8 +60,14 @@ function GeoJSONtoRDF(geojson, doc) {
   geojson.features.forEach(feature => {
     wkt = new Wkt.Wkt();
     txt = wkt.fromJson(feature);
-    let geom = $rdf.blankNode();
-    let rdf_feature = $rdf.blankNode();
+    let geom =
+      feature.properties && feature.properties._geom
+        ? feature.properties._geom
+        : $rdf.blankNode();
+    let rdf_feature =
+      feature.properties && feature.properties._item
+        ? feature.properties._item
+        : $rdf.blankNode();
     ins.push(
       $rdf.st(
         geom,
