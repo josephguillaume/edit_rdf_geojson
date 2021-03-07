@@ -126,4 +126,9 @@ class RDFlib_GeoJSON {
       alert(err);
     }
   }
+
+  async delete_doc() {
+    await this.fetcher.webOperation("DELETE", this.doc);
+    return true;
+  }
 }

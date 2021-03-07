@@ -61,6 +61,17 @@ class RDF_GeoJSON_editor {
     });
   }
 
+  async delete_doc() {
+    if (confirm("Delete WHOLE document?")) {
+      let success = await this.rdf_geojson.delete_doc();
+      if (success) {
+        alert("Document deleted. Restarting...");
+        // FIXME: seems cached geodata file might still be loaded
+        window.location.reload(true);
+      }
+    }
+  }
+
   show_property_editor(feature) {
     var property_editor = document.getElementById("property_editor");
     if (!property_editor) {
