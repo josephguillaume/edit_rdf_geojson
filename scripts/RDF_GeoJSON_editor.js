@@ -44,6 +44,7 @@ class RDF_GeoJSON_editor {
       this.rdf_geojson.create(e.layer.toGeoJSON()).then(newFeature => {
         e.layer.remove();
         this.layer.addData(newFeature);
+        thisEditor.show_property_editor(newFeature);
       });
     });
 
