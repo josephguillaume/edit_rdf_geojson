@@ -74,6 +74,8 @@
     <p id="logout" class="hidden">
       You are logged in as <span id="user"></span>.
       <button>Log out</button>
+      <a href="#" onClick="window.location.reload(true);">Open new file</a>
+      <a id="doc_link" class="hidden" target="_blank">Open in new window</a>
       <a id="download_link" class="hidden" href="#" onClick="download_geojson()"
         >Download GeoJSON</a
       >
@@ -177,6 +179,8 @@
                 .getElementById("download_link")
                 .classList.remove("hidden");
               document.getElementById("delete_link").classList.remove("hidden");
+              document.getElementById("doc_link").href = zonedoc;
+              document.getElementById("doc_link").classList.remove("hidden");
             },
             "browse_cookie_default",
             { cookie_name: "zonedoc_default" }
