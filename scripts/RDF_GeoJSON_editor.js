@@ -102,7 +102,14 @@ class RDF_GeoJSON_editor {
     document
       .querySelector("#property_editor tbody")
       .setAttribute("data-rdfref", feature.properties._item.value);
-    Object.keys(feature.properties).forEach(key => {
+    let feature_keys = Object.keys(feature.properties);
+    // TODO: specify schema instead of autocompleting property keys?
+    let all_keys = [
+      ...new Set(
+        this.toGeoJSON().features.flatMap(x => Object.keys(x.properties))
+      )
+    ];
+    feature_keys.forEach(key => {
       if (key == "_item" || key == "_geom") return null;
       let value = feature.properties[key];
       let row = document.createElement("tr");
@@ -112,6 +119,17 @@ class RDF_GeoJSON_editor {
       `;
       property_editor.querySelector("tbody").appendChild(row);
     });
+    all_keys
+      .filter(x => !feature_keys.includes(x))
+      .forEach(key => {
+        if (key == "_item" || key == "_geom") return null;
+        let row = document.createElement("tr");
+        row.innerHTML = `
+      <td class="key placeholder" data-orig="${key}">${key}</td>
+      <td class="value" contenteditable data-orig="${key}"></td>
+      `;
+        property_editor.querySelector("tbody").appendChild(row);
+      });
 
     row = document.createElement("tr");
     row.innerHTML = `
