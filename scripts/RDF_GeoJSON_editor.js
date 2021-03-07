@@ -27,11 +27,11 @@ class RDF_GeoJSON_editor {
       .then(layer => {
         this.layer = layer;
         this.layer.on("pm:update", async function (e) {
-          e.sourceTarget.setStyle({ color: "red" });
+          e.layer.setStyle({ color: "red" });
           let new_feature = await thisEditor.rdf_geojson.update(
-            e.sourceTarget.toGeoJSON()
+            e.layer.toGeoJSON()
           );
-          e.sourceTarget.remove();
+          e.layer.remove();
           thisEditor.layer.addData(new_feature);
         });
         this.layer.addTo(this.map);
