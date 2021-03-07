@@ -7,45 +7,15 @@ class RDF_GeoJSON_editor {
     this.rdf_geojson = new RDFlib_GeoJSON(doc);
 
     var thisEditor = this;
-    this.rdf_geojson
-      .read()
-      .then(geojson =>
-        L.geoJSON(geojson, {
-          onEachFeature: function (feature, layer) {
-            layer.on("click", e => {
-              // TODO: seems like there should be a better way of dealing with this
-              if (
-                thisEditor.map.pm.globalEditEnabled() ||
-                thisEditor.map.pm.globalRemovalEnabled()
-              )
-                return false;
-              thisEditor.show_property_editor(e.target.feature);
-            });
-          }
-        })
-      )
-      .then(layer => {
-        this.layer = layer;
-        this.layer.on("pm:update", async function (e) {
-          e.layer.setStyle({ color: "red" });
-          let new_feature = await thisEditor.rdf_geojson.update(
-            e.layer.toGeoJSON()
-          );
-          e.layer.remove();
-          thisEditor.layer.addData(new_feature);
-        });
-        this.layer.addTo(this.map);
-        let bounds = this.layer.getBounds();
-        if (Object.keys(bounds).length) this.map.fitBounds(bounds);
-      });
+    this.load();
 
-    this.map.on("pm:create", e => {
+    this.map.on("pm:create", async e => {
       e.layer.setStyle({ color: "red" });
-      this.rdf_geojson.create(e.layer.toGeoJSON()).then(newFeature => {
-        e.layer.remove();
-        this.layer.addData(newFeature);
-        thisEditor.show_property_editor(newFeature);
-      });
+      let newFeature = await this.rdf_geojson.create(e.layer.toGeoJSON());
+      e.layer.remove();
+      if (!this.layer) await this.load();
+      this.layer.addData(newFeature);
+      thisEditor.show_property_editor(newFeature);
     });
 
     this.map.on("pm:remove", e => {
@@ -59,6 +29,37 @@ class RDF_GeoJSON_editor {
           .then(() => e.layer.remove());
       }
     });
+  }
+
+  async load() {
+    let geojson = await this.rdf_geojson.read();
+    var thisEditor = this;
+    if (geojson) {
+      this.layer = await L.geoJSON(geojson, {
+        onEachFeature: function (feature, layer) {
+          layer.on("click", e => {
+            // TODO: seems like there should be a better way of dealing with this
+            if (
+              thisEditor.map.pm.globalEditEnabled() ||
+              thisEditor.map.pm.globalRemovalEnabled()
+            )
+              return false;
+            thisEditor.show_property_editor(e.target.feature);
+          });
+        }
+      });
+      this.layer.on("pm:update", async function (e) {
+        e.layer.setStyle({ color: "red" });
+        let new_feature = await thisEditor.rdf_geojson.update(
+          e.layer.toGeoJSON()
+        );
+        e.layer.remove();
+        thisEditor.layer.addData(new_feature);
+      });
+      this.layer.addTo(this.map);
+      let bounds = this.layer.getBounds();
+      if (Object.keys(bounds).length) this.map.fitBounds(bounds);
+    }
   }
 
   async delete_doc() {
